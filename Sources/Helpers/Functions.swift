@@ -11,9 +11,13 @@ func imageNamed(_ name: String) -> UIImage {
   var bundle = Bundle(for: cls)
   let traitCollection = UITraitCollection(displayScale: 3)
 
+#if SWIFT_PACKAGE
+  bundle = Bundle.module
+#else
   if let resourceBundle = bundle.resourcePath.flatMap({ Bundle(path: $0 + "/BarcodeScanner.bundle") }) {
     bundle = resourceBundle
   }
+#endif
 
   guard let image = UIImage(named: name, in: bundle, compatibleWith: traitCollection) else {
     return UIImage()
@@ -24,15 +28,19 @@ func imageNamed(_ name: String) -> UIImage {
 
 /**
  Returns localized string using localization resource bundle.
- - Parameter name: Image name.
- - Returns: An image.
+ - Parameter key: Localization table key.
+ - Returns: Localized string.
  */
 func localizedString(_ key: String) -> String {
-  if let path = Bundle(for: BarcodeScannerViewController.self).resourcePath,
-    let resourceBundle = Bundle(path: path + "/Localization.bundle") {
-    return resourceBundle.localizedString(forKey: key, value: nil, table: "Localizable")
-  }
-  return key
+  #if SWIFT_PACKAGE
+    return Bundle.module.localizedString(forKey: key, value: nil, table: "Localizable")
+  #else
+    if let path = Bundle(for: BarcodeScannerViewController.self).resourcePath,
+      let resourceBundle = Bundle(path: path + "/Localization.bundle") {
+      return resourceBundle.localizedString(forKey: key, value: nil, table: "Localizable")
+    }
+    return key
+  #endif
 }
 
 /// Checks if the app is running in Simulator.
